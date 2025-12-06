@@ -1,0 +1,250 @@
+generator client {
+  provider = "prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  NOT_SPECIFIED
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+
+enum ProductStatus {
+  AVAILABLE
+  NOT_AVAILABLE
+  IN_REPAIR
+}
+
+enum ProductType {
+  SPARE
+  SERVICE
+  ACCESSORY
+  MATERIAL
+}
+
+enum InventoryStatus {
+  AVAILABLE
+  NOT_AVAILABLE
+  IN_REPAIR
+  ON_HOLD
+}
+
+enum MovementType {
+  ENTRY
+  EXIT
+}
+
+model Client {
+  id             String       @id @default(cuid())
+  documentNumber String       @unique @db.VarChar(20)
+  fullName       String       @db.VarChar(75)
+  phone          String       @db.VarChar(45)
+  email          String       @db.VarChar(45)
+  documentTypeId Int
+  documentType   DocumentType @relation(fields: [documentTypeId], references: [id])
+
+  appointments Appointment[]
+}
+
+model DocumentType {
+  id           Int    @id
+  name         String @db.VarChar(255)
+  abbreviation String @db.VarChar(3)
+
+  clients Client[]
+  users   User[]
+}
+
+model User {
+  id             Int      @id
+  documentNumber String   @unique @db.VarChar(20)
+  firstName      String   @db.VarChar(75)
+  lastName       String   @db.VarChar(75)
+  email          String   @db.VarChar(45)
+  password       String   @db.VarChar(255)
+  gender         Gender
+  status         Status
+  createdAt      DateTime
+  updatedAt      DateTime
+  documentTypeId Int
+  roleId         Int
+  municipalityId Int
+
+  role         Role         @relation(fields: [roleId], references: [id])
+  municipality Municipality @relation(fields: [municipalityId], references: [id])
+  documentType DocumentType @relation(fields: [documentTypeId], references: [id])
+
+  appointments Appointment[]
+  motorcycles  Motorcycle[]
+}
+
+model Role {
+  id   Int    @id
+  name String @db.VarChar(45)
+
+  users User[]
+}
+
+model Municipality {
+  id           Int    @id
+  name         String @db.VarChar(255)
+  status       Status
+  departmentId Int
+
+  department Department @relation(fields: [departmentId], references: [id])
+  users      User[]
+  branches   Branch[]
+}
+
+model Department {
+  id   Int    @id
+  name String @db.VarChar(255)
+
+  municipalities Municipality[]
+}
+
+model Branch {
+  id             String @id @default(cuid())
+  name           String @db.VarChar(45)
+  phone          String @db.VarChar(45)
+  address        String @db.VarChar(45)
+  municipalityId Int
+
+  municipality Municipality @relation(fields: [municipalityId], references: [id])
+  workshops    Workshop[]
+  inventory    Inventory[]
+}
+
+model Workshop {
+  id       String @id @default(cuid())
+  name     String @db.VarChar(45)
+  branchId String
+
+  branch       Branch        @relation(fields: [branchId], references: [id])
+  appointments Appointment[]
+  maintenance  Maintenance[]
+}
+
+model Appointment {
+  id           String   @id @default(cuid())
+  dateTime     DateTime
+  description  String   @db.VarChar(500)
+  workshopId   String
+  userId       Int
+  motorcycleId String
+  clientId     String
+
+  client     Client     @relation(fields: [clientId], references: [id])
+  user       User       @relation(fields: [userId], references: [id])
+  motorcycle Motorcycle @relation(fields: [motorcycleId], references: [id])
+  workshop   Workshop   @relation(fields: [workshopId], references: [id])
+
+  maintenance Maintenance[]
+}
+
+model Motorcycle {
+  id               String @id @default(cuid())
+  serialNumber     String @db.VarChar(50)
+  brand            String @db.VarChar(45)
+  model            String @db.VarChar(45)
+  plateNumber      String @db.VarChar(45)
+  cubicCentimeters Int
+  color            String @db.VarChar(45)
+  engineTypeId     Int
+  userId           Int
+  engineSizeTypeId Int
+
+  user           User           @relation(fields: [userId], references: [id])
+  engineSizeType EngineSizeType @relation(fields: [engineSizeTypeId], references: [id])
+  engineType     EngineType     @relation(fields: [engineTypeId], references: [id])
+
+  appointments Appointment[]
+}
+
+model EngineSizeType {
+  id       Int    @id
+  name     String @db.VarChar(45)
+  capacity String @db.VarChar(255)
+
+  motorcycles Motorcycle[]
+}
+
+model EngineType {
+  id   Int    @id
+  name String @db.VarChar(255)
+
+  motorcycles Motorcycle[]
+}
+
+model Maintenance {
+  id            String   @id @default(cuid())
+  performedAt   DateTime
+  description   String   @db.VarChar(255)
+  cost          Decimal  @db.Decimal(10, 2)
+  warrantyDate  DateTime
+  workshopId    String
+  appointmentId String
+
+  workshop    Workshop    @relation(fields: [workshopId], references: [id])
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
+
+  assignedParts AssignedPart[]
+}
+
+model Product {
+  id          String        @id @default(cuid())
+  name        String        @db.VarChar(45)
+  description String        @db.VarChar(255)
+  stock       Int
+  unitPrice   Decimal       @db.Decimal(10, 2)
+  productType ProductType
+  condition   String        @db.VarChar(45)
+  status      ProductStatus
+
+  inventory     Inventory[]
+  assignedParts AssignedPart[]
+}
+
+model Inventory {
+  id        String          @id @default(cuid())
+  quantity  Int
+  status    InventoryStatus
+  entryDate DateTime
+  productId String
+  branchId  String
+
+  product Product @relation(fields: [productId], references: [id])
+  branch  Branch  @relation(fields: [branchId], references: [id])
+
+  movements Movement[]
+}
+
+model Movement {
+  id           String       @id @default(cuid())
+  movementType MovementType
+  description  String
+  date         DateTime     @db.Timestamp(6)
+  inventoryId  String
+
+  inventory Inventory @relation(fields: [inventoryId], references: [id])
+}
+
+model AssignedPart {
+  id            String  @id @default(cuid())
+  quantity      Int
+  unitPrice     Decimal @db.Decimal(10, 2)
+  totalPrice    Decimal @db.Decimal(10, 2)
+  maintenanceId String
+  productId     String
+
+  maintenance Maintenance @relation(fields: [maintenanceId], references: [id])
+  product     Product     @relation(fields: [productId], references: [id])
+}
