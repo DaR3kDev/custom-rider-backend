@@ -58,5 +58,5 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 # Prisma
 /prisma/*.code-workspace
 /prisma/migrations
-src/generated/prisma
-src/generated/prisma
+/src/graphql/
+/src/generated/prisma/
