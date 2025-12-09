@@ -1,5 +1,13 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
 generator client {
-  provider = "prisma-client"
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
 }
 
 datasource db {
@@ -10,6 +18,11 @@ enum Gender {
   MALE
   FEMALE
   NOT_SPECIFIED
+}
+
+enum Role {
+  ADMIN
+  EMPLOYEE
 }
 
 enum Status {
@@ -72,25 +85,17 @@ model User {
   password       String   @db.VarChar(255)
   gender         Gender
   status         Status
+  role           Role
   createdAt      DateTime
   updatedAt      DateTime
   documentTypeId Int
-  roleId         Int
   municipalityId Int
 
-  role         Role         @relation(fields: [roleId], references: [id])
   municipality Municipality @relation(fields: [municipalityId], references: [id])
   documentType DocumentType @relation(fields: [documentTypeId], references: [id])
 
   appointments Appointment[]
   motorcycles  Motorcycle[]
-}
-
-model Role {
-  id   Int    @id
-  name String @db.VarChar(45)
-
-  users User[]
 }
 
 model Municipality {
@@ -102,11 +107,13 @@ model Municipality {
   department Department @relation(fields: [departmentId], references: [id])
   users      User[]
   branches   Branch[]
+
+  @@unique([name, departmentId])
 }
 
 model Department {
   id   Int    @id
-  name String @db.VarChar(255)
+  name String @unique @db.VarChar(255)
 
   municipalities Municipality[]
 }
