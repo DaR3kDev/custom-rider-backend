@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { DatabaseService } from '~/database/database.service';
-import { PrismaClient } from '~/generated/prisma/client';
+import { Prisma, PrismaClient } from '~/generated/prisma/client';
 
 @Injectable()
 export class IdGeneratorService {
@@ -12,10 +12,7 @@ export class IdGeneratorService {
    */
   async getNextId<T extends keyof PrismaClient>(modelName: T): Promise<number> {
     const model = this.dataService[modelName] as unknown as {
-      findMany: (args: {
-        select: { id: true };
-        orderBy: { id: 'asc' };
-      }) => Promise<{ id: number }[]>;
+      findMany: (args?: unknown) => Promise<{ id: number }[]>;
     };
 
     if (!model || typeof model.findMany !== 'function')
@@ -26,12 +23,12 @@ export class IdGeneratorService {
       orderBy: { id: 'asc' },
     });
 
-    let nextId = 1;
-    while (nextId <= records.length) {
-      if (records[nextId - 1].id !== nextId) return nextId;
-      nextId++;
+    if (!records.length) return 1;
+
+    for (let i = 0; i < records.length; i++) {
+      if (records[i].id !== i + 1) return i + 1;
     }
 
-    return nextId;
+    return records[records.length - 1].id + 1;
   }
 }

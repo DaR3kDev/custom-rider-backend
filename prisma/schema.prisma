@@ -70,7 +70,7 @@ model Client {
 model DocumentType {
   id           Int    @id
   name         String @db.VarChar(255)
-  abbreviation String @db.VarChar(3)
+  abbreviation String @unique @db.VarChar(25)
 
   clients Client[]
   users   User[]
@@ -78,7 +78,7 @@ model DocumentType {
 
 model User {
   id             Int      @id
-  documentNumber String   @unique @db.VarChar(20)
+  documentNumber String   @db.VarChar(20)
   firstName      String   @db.VarChar(75)
   lastName       String   @db.VarChar(75)
   email          String   @db.VarChar(45)
@@ -96,6 +96,8 @@ model User {
 
   appointments Appointment[]
   motorcycles  Motorcycle[]
+
+  @@unique([documentNumber, email])
 }
 
 model Municipality {

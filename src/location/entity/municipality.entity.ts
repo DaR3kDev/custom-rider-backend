@@ -1,6 +1,7 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { Status } from '~/common/enums/status.enum';
-import { Department } from './department.entity';
+import { Department } from '~/location/entity/department.entity';
+import { User } from '~/user/entity/user.entity';
 
 @ObjectType()
 export class Municipality {
@@ -15,4 +16,7 @@ export class Municipality {
 
   @Field(() => Department)
   department: Department;
+
+  @Field(() => [User], { nullable: true })
+  users?: User[];
 }

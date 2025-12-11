@@ -1,0 +1,46 @@
+[
+  {
+    "abbreviation": "RC",
+    "name": "Registro civil"
+  },
+  {
+    "abbreviation": "TI",
+    "name": "Tarjeta de identidad"
+  },
+  {
+    "abbreviation": "CC",
+    "name": "Cédula de ciudadanía"
+  },
+  {
+    "abbreviation": "TE",
+    "name": "Tarjeta de extranjería"
+  },
+  {
+    "abbreviation": "CE",
+    "name": "Cédula de extranjería"
+  },
+  {
+    "abbreviation": "NIT",
+    "name": "Número de identificación tributaria"
+  },
+  {
+    "abbreviation": "PP",
+    "name": "Pasaporte"
+  },
+  {
+    "abbreviation": "PEP",
+    "name": "Permiso especial de permanencia"
+  },
+  {
+    "abbreviation": "DIE",
+    "name": "Documento de identificación extranjero"
+  },
+  {
+    "abbreviation": "NUIP",
+    "name": "NUIP"
+  },
+  {
+    "abbreviation": "FOREIGN_NIT",
+    "name": "NIT de otro país"
+  }
+]

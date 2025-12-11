@@ -1,5 +1,5 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
-import { Municipality } from './municipality.entity';
+import { Municipality } from '~/location/entity/municipality.entity';
 
 @ObjectType()
 export class Department {

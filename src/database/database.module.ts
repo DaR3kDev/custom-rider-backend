@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { DatabaseService } from './database.service';
-import { IdGeneratorService } from './id-generator.service';
+import { DatabaseService } from '~/database/database.service';
+import { IdGeneratorService } from '~/database/id-generator.service';
 
 @Module({
   providers: [DatabaseService, IdGeneratorService],
