@@ -2,7 +2,7 @@ import { InputType, Field, Int } from '@nestjs/graphql';
 import { IsInt, Min, Max, IsOptional, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 
-@InputType()
+@InputType({ isAbstract: true })
 export class PaginationDto {
   @Field(() => Int)
   @IsInt()
@@ -13,7 +13,7 @@ export class PaginationDto {
   @Field(() => Int)
   @IsInt()
   @Min(1)
-  @Max(100)
+  @Max(1000)
   @Type(() => Number)
   limit: number;
 

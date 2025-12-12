@@ -1,16 +1,12 @@
-import { Field, InputType, Int } from '@nestjs/graphql';
-import { PartialType } from '@nestjs/mapped-types';
+import { Field, InputType } from '@nestjs/graphql';
+import { IsEnum, IsOptional } from 'class-validator';
 import { Role } from '~/common/enums/role.enum';
 import { PaginationDto } from '~/common/pagination/dto/pagination.dto';
 
 @InputType()
-export class PaginationUserInput extends PartialType(PaginationDto) {
+export class PaginationUserInput extends PaginationDto {
   @Field(() => Role, { nullable: true })
+  @IsOptional()
+  @IsEnum(Role, { message: 'El rol debe ser un valor válido.' })
   role?: Role;
-
-  @Field(() => Int, { defaultValue: 1 })
-  page: number;
-
-  @Field(() => Int, { defaultValue: 10 })
-  limit: number;
 }

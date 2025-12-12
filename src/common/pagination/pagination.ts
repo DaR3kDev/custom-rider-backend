@@ -1,22 +1,17 @@
-import { PaginatedResponse } from './interfaces/pagination.interface';
+import { PaginatedResponse } from '~/common/pagination/interfaces/pagination.interface';
 
 export class PaginationHelper {
-  static build<T>(
-    data: T[],
-    totalItems: number,
-    currentPage: number,
-    pageSize: number,
-  ): PaginatedResponse<T> {
-    const totalPages = Math.ceil(totalItems / pageSize);
+  static build<T>(data: T[], total: number, page: number, limit: number): PaginatedResponse<T> {
+    const totalPages = Math.ceil(total / limit);
 
     return {
+      total,
       totalPages,
-      hasPreviousPage: currentPage > 1,
-      hasNextPage: currentPage < totalPages,
-      currentPage,
-      pageSize,
-      totalItems,
-      data,
+      hasPreviousPage: page > 1,
+      hasNextPage: page < totalPages,
+      page,
+      limit,
+      items: data,
     };
   }
 }

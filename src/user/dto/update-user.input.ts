@@ -1,11 +1,14 @@
+import { InputType, Field } from '@nestjs/graphql';
+import { PartialType } from '@nestjs/graphql';
+import { IsOptional, IsString } from 'class-validator';
 import { CreateUserInput } from './create-user.input';
-import { InputType, Field, Int, PartialType } from '@nestjs/graphql';
-import { IsInt, IsPositive } from 'class-validator';
+import { Match } from '../../common/decorators/match.decorator';
 
 @InputType()
 export class UpdateUserInput extends PartialType(CreateUserInput) {
-  @Field(() => Int, { description: 'ID del usuario a actualizar' })
-  @IsInt({ message: 'El ID debe ser un número entero.' })
-  @IsPositive({ message: 'El ID debe ser un número entero positivo.' })
-  id: number;
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  @Match('password', { message: 'Las contraseñas no coinciden.' })
+  confirmPassword?: string;
 }

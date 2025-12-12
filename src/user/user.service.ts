@@ -4,9 +4,10 @@ import { CreateUserInput } from '~/user/dto/create-user.input';
 import { DatabaseService } from '~/database/database.service';
 import { Prisma, Status, User } from '~/generated/prisma/client';
 import { PaginatedResponse } from '~/common/pagination/interfaces/pagination.interface';
-import { PaginationUserInput } from './dto/pagination-user.input';
 import { PaginationHelper } from '~/common/pagination/pagination';
 import { IdGeneratorService } from '~/database/id-generator.service';
+import { UpdateUserInput } from '~/user/dto/update-user.input';
+import { PaginationUserInput } from '~/user/dto/pagination-user.input';
 
 @Injectable()
 export class UserService {
@@ -58,16 +59,70 @@ export class UserService {
 
     const totalUsers = await this.databaseServices.user.count({ where });
 
-    const safeUsers = users.map(({ id, firstName, lastName, email, role }) => ({
+    const safeUsers = users.map(({ id, firstName, lastName, email, role, status }) => ({
       id,
       firstName,
       lastName,
       email,
       role,
+      status,
     }));
 
-    const paginatedResponse = PaginationHelper.build(safeUsers, totalUsers, page, limit);
+    return PaginationHelper.build(safeUsers, totalUsers, page, limit);
+  }
 
-    return paginatedResponse;
+  async findOne(id: number) {
+    return await this.databaseServices.user.findUnique({
+      where: { id },
+      include: {
+        documentType: true,
+        municipality: {
+          include: {
+            department: true,
+          },
+        },
+      },
+    });
+  }
+
+  async update(id: number, updateUserInput: UpdateUserInput) {
+    const user = await this.databaseServices.user.findUnique({
+      where: { id },
+    });
+
+    if (!user) throw new BadRequestException('El usuario no existe.');
+
+    const { password, confirmPassword } = updateUserInput;
+
+    if (!confirmPassword)
+      throw new BadRequestException('Debe enviar la contraseña si desea confirmar la contraseña.');
+
+    if (password !== confirmPassword)
+      throw new BadRequestException('Las contraseñas no coinciden.');
+
+    if (await argon2.verify(user.password, password))
+      throw new BadRequestException('Debe ingresar una contraseña diferente a la actual.');
+
+    updateUserInput.password = await argon2.hash(password);
+    delete updateUserInput.confirmPassword;
+
+    await this.databaseServices.user.update({
+      where: { id },
+      data: updateUserInput,
+    });
+
+    return this.databaseServices.user.findUnique({
+      where: { id },
+      include: {
+        documentType: true,
+        municipality: {
+          include: { department: true },
+        },
+      },
+    });
+  }
+
+  async delete(id: number) {
+    return await this.databaseServices.user.delete({ where: { id } });
   }
 }
