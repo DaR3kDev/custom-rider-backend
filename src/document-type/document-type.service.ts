@@ -1,14 +1,10 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { DatabaseService } from '~/database/database.service';
-import { IdGeneratorService } from '~/database/id-generator.service';
 import identification_types from '~/document-type/data/identification_types.json';
 
 @Injectable()
 export class DocumentTypeService implements OnModuleInit {
-  constructor(
-    private readonly databaseServices: DatabaseService,
-    private readonly idGenerator: IdGeneratorService,
-  ) {}
+  constructor(private readonly databaseServices: DatabaseService) {}
 
   async onModuleInit() {
     for (const { abbreviation, name } of identification_types) {
@@ -16,7 +12,6 @@ export class DocumentTypeService implements OnModuleInit {
         where: { abbreviation },
         update: {},
         create: {
-          id: await this.idGenerator.getNextId('documentType'),
           abbreviation,
           name,
         },

@@ -5,21 +5,19 @@ import { DatabaseService } from '~/database/database.service';
 import { Prisma, Status, User } from '~/generated/prisma/client';
 import { PaginatedResponse } from '~/common/pagination/interfaces/pagination.interface';
 import { PaginationHelper } from '~/common/pagination/pagination';
-import { IdGeneratorService } from '~/database/id-generator.service';
 import { UpdateUserInput } from '~/user/dto/update-user.input';
 import { PaginationUserInput } from '~/user/dto/pagination-user.input';
 
 @Injectable()
 export class UserService {
-  constructor(
-    private readonly databaseServices: DatabaseService,
-    private readonly idGenerator: IdGeneratorService,
-  ) {}
+  constructor(private readonly databaseServices: DatabaseService) {}
 
   async create(createUserInput: CreateUserInput) {
+    const { documentNumber, email, password, status } = createUserInput;
+
     const existingUser = await this.databaseServices.user.findFirst({
       where: {
-        OR: [{ documentNumber: createUserInput.documentNumber }, { email: createUserInput.email }],
+        OR: [{ documentNumber }, { email }],
       },
     });
 
@@ -28,12 +26,9 @@ export class UserService {
 
     return await this.databaseServices.user.create({
       data: {
-        id: await this.idGenerator.getNextId('user'),
         ...createUserInput,
-        status: createUserInput.status ?? Status.ACTIVE,
-        password: await argon2.hash(createUserInput.password),
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        status: status ?? Status.ACTIVE,
+        password: await argon2.hash(password),
       },
     });
   }

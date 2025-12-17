@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider     = "prisma-client"
   output       = "../src/generated/prisma"
@@ -55,55 +49,79 @@ enum MovementType {
   EXIT
 }
 
-model Client {
-  id             String       @id @default(cuid())
-  documentNumber String       @unique @db.VarChar(20)
-  fullName       String       @db.VarChar(75)
-  phone          String       @db.VarChar(45)
-  email          String       @db.VarChar(45)
-  documentTypeId Int
-  documentType   DocumentType @relation(fields: [documentTypeId], references: [id])
-
-  appointments Appointment[]
-}
-
-model DocumentType {
-  id           Int    @id
-  name         String @db.VarChar(255)
-  abbreviation String @unique @db.VarChar(25)
-
-  clients Client[]
-  users   User[]
-}
+/**
+ * =======================
+ * USERS & CLIENTS
+ * =======================
+ */
 
 model User {
-  id             Int      @id
+  id             Int      @id @default(autoincrement())
   documentNumber String   @db.VarChar(20)
   firstName      String   @db.VarChar(75)
   lastName       String   @db.VarChar(75)
-  email          String   @db.VarChar(45)
+  email          String   @unique @db.VarChar(100)
   password       String   @db.VarChar(255)
   gender         Gender
-  status         Status
+  status         Status   @default(ACTIVE)
   role           Role
-  createdAt      DateTime
-  updatedAt      DateTime
   documentTypeId Int
   municipalityId Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  municipality Municipality @relation(fields: [municipalityId], references: [id])
   documentType DocumentType @relation(fields: [documentTypeId], references: [id])
+  municipality Municipality @relation(fields: [municipalityId], references: [id])
 
   appointments Appointment[]
   motorcycles  Motorcycle[]
 
   @@unique([documentNumber, email])
+  @@index([documentNumber])
+}
+
+model Client {
+  id             String   @id @default(cuid())
+  documentNumber String   @db.VarChar(20)
+  firstName      String   @db.VarChar(75)
+  lastName       String   @db.VarChar(75)
+  phone          String   @db.VarChar(45)
+  email          String   @db.VarChar(100)
+  documentTypeId Int
+  createdAt      DateTime @default(now())
+
+  documentType DocumentType  @relation(fields: [documentTypeId], references: [id])
+  appointments Appointment[]
+
+  @@unique([documentNumber, email])
+}
+
+model DocumentType {
+  id           Int    @id @default(autoincrement())
+  name         String @db.VarChar(100)
+  abbreviation String @unique @db.VarChar(25)
+
+  users   User[]
+  clients Client[]
+}
+
+/**
+ * =======================
+ * LOCATION
+ * =======================
+ */
+
+model Department {
+  id   Int    @id @default(autoincrement())
+  name String @unique @db.VarChar(100)
+
+  municipalities Municipality[]
 }
 
 model Municipality {
-  id           Int    @id
-  name         String @db.VarChar(255)
-  status       Status
+  id           Int    @id @default(autoincrement())
+  name         String @db.VarChar(100)
+  status       Status @default(ACTIVE)
   departmentId Int
 
   department Department @relation(fields: [departmentId], references: [id])
@@ -113,29 +131,30 @@ model Municipality {
   @@unique([name, departmentId])
 }
 
-model Department {
-  id   Int    @id
-  name String @unique @db.VarChar(255)
-
-  municipalities Municipality[]
-}
-
 model Branch {
-  id             String @id @default(cuid())
-  name           String @db.VarChar(45)
-  phone          String @db.VarChar(45)
-  address        String @db.VarChar(45)
+  id             String   @id @default(cuid())
+  name           String   @db.VarChar(75)
+  phone          String   @db.VarChar(45)
+  address        String   @db.VarChar(120)
   municipalityId Int
+  createdAt      DateTime @default(now())
 
   municipality Municipality @relation(fields: [municipalityId], references: [id])
   workshops    Workshop[]
   inventory    Inventory[]
 }
 
+/**
+ * =======================
+ * WORKSHOP
+ * =======================
+ */
+
 model Workshop {
-  id       String @id @default(cuid())
-  name     String @db.VarChar(45)
-  branchId String
+  id        String   @id @default(cuid())
+  name      String   @db.VarChar(75)
+  branchId  String
+  createdAt DateTime @default(now())
 
   branch       Branch        @relation(fields: [branchId], references: [id])
   appointments Appointment[]
@@ -150,48 +169,63 @@ model Appointment {
   userId       Int
   motorcycleId String
   clientId     String
+  createdAt    DateTime @default(now())
 
-  client     Client     @relation(fields: [clientId], references: [id])
+  workshop   Workshop   @relation(fields: [workshopId], references: [id])
   user       User       @relation(fields: [userId], references: [id])
   motorcycle Motorcycle @relation(fields: [motorcycleId], references: [id])
-  workshop   Workshop   @relation(fields: [workshopId], references: [id])
+  client     Client     @relation(fields: [clientId], references: [id])
 
   maintenance Maintenance[]
+
+  @@index([dateTime])
 }
+
+/**
+ * =======================
+ * MOTORCYCLE
+ * =======================
+ */
 
 model Motorcycle {
   id               String @id @default(cuid())
-  serialNumber     String @db.VarChar(50)
+  serialNumber     String @unique @db.VarChar(50)
+  plateNumber      String @unique @db.VarChar(20)
   brand            String @db.VarChar(45)
   model            String @db.VarChar(45)
-  plateNumber      String @db.VarChar(45)
   cubicCentimeters Int
   color            String @db.VarChar(45)
   engineTypeId     Int
-  userId           Int
   engineSizeTypeId Int
+  userId           Int
 
   user           User           @relation(fields: [userId], references: [id])
-  engineSizeType EngineSizeType @relation(fields: [engineSizeTypeId], references: [id])
   engineType     EngineType     @relation(fields: [engineTypeId], references: [id])
+  engineSizeType EngineSizeType @relation(fields: [engineSizeTypeId], references: [id])
 
   appointments Appointment[]
 }
 
-model EngineSizeType {
-  id       Int    @id
-  name     String @db.VarChar(45)
-  capacity String @db.VarChar(255)
-
-  motorcycles Motorcycle[]
-}
-
 model EngineType {
-  id   Int    @id
-  name String @db.VarChar(255)
+  id   Int    @id @default(autoincrement())
+  name String @unique @db.VarChar(100)
 
   motorcycles Motorcycle[]
 }
+
+model EngineSizeType {
+  id       Int    @id @default(autoincrement())
+  name     String @db.VarChar(45)
+  capacity String @db.VarChar(100)
+
+  motorcycles Motorcycle[]
+}
+
+/**
+ * =======================
+ * MAINTENANCE
+ * =======================
+ */
 
 model Maintenance {
   id            String   @id @default(cuid())
@@ -201,6 +235,7 @@ model Maintenance {
   warrantyDate  DateTime
   workshopId    String
   appointmentId String
+  createdAt     DateTime @default(now())
 
   workshop    Workshop    @relation(fields: [workshopId], references: [id])
   appointment Appointment @relation(fields: [appointmentId], references: [id])
@@ -208,14 +243,18 @@ model Maintenance {
   assignedParts AssignedPart[]
 }
 
+/**
+ * =======================
+ * INVENTORY
+ * =======================
+ */
+
 model Product {
   id          String        @id @default(cuid())
-  name        String        @db.VarChar(45)
+  name        String        @db.VarChar(75)
   description String        @db.VarChar(255)
-  stock       Int
   unitPrice   Decimal       @db.Decimal(10, 2)
   productType ProductType
-  condition   String        @db.VarChar(45)
   status      ProductStatus
 
   inventory     Inventory[]
@@ -226,21 +265,23 @@ model Inventory {
   id        String          @id @default(cuid())
   quantity  Int
   status    InventoryStatus
-  entryDate DateTime
   productId String
   branchId  String
+  createdAt DateTime        @default(now())
 
   product Product @relation(fields: [productId], references: [id])
   branch  Branch  @relation(fields: [branchId], references: [id])
 
   movements Movement[]
+
+  @@index([productId, branchId])
 }
 
 model Movement {
   id           String       @id @default(cuid())
   movementType MovementType
   description  String
-  date         DateTime     @db.Timestamp(6)
+  date         DateTime     @default(now())
   inventoryId  String
 
   inventory Inventory @relation(fields: [inventoryId], references: [id])
@@ -256,4 +297,6 @@ model AssignedPart {
 
   maintenance Maintenance @relation(fields: [maintenanceId], references: [id])
   product     Product     @relation(fields: [productId], references: [id])
+
+  @@index([maintenanceId])
 }

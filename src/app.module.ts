@@ -6,6 +6,7 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { UserModule } from '~/user/user.module';
 import { LocationModule } from '~/location/location.module';
 import { DocumentTypeModule } from '~/document-type/document-type.module';
+import { ClientModule } from './client/client.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { DocumentTypeModule } from '~/document-type/document-type.module';
     UserModule,
     LocationModule,
     DocumentTypeModule,
+    ClientModule,
   ],
 })
 export class AppModule {}

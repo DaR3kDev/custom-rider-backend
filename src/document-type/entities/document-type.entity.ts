@@ -1,4 +1,5 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { Client } from '~/client/entities/client.entity';
 import { User } from '~/user/entity/user.entity';
 
 @ObjectType()
@@ -14,4 +15,7 @@ export class DocumentType {
 
   @Field(() => [User], { nullable: true })
   users?: User[];
+
+  @Field(() => [Client], { nullable: true })
+  client?: Client[];
 }
